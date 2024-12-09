@@ -1,11 +1,11 @@
 <div align="center">
 
-# Simple Reproducible Python Discrete-Event Simulation (DES) Template
+# Simple Reproducible Python<br>Discrete-Event Simulation (DES) Template
 
 ![python](https://img.shields.io/badge/-Python_3.13-blue?logo=python&logoColor=white)
 ![licence](https://img.shields.io/badge/Licence-MIT-green.svg?labelColor=gray)
 
-A simple template for creating SimPy DES models in Python, within a **reproducible analytical pipeline (RAP)** 🔄 <br>
+A simple template for creating SimPy DES models in Python, within a **reproducible analytical pipeline (RAP)**<br>
 Click on <kbd>Use this template</kbd> to initialise new repository.<br>A `README` template is provided at the **end of this file**.
 
 </div>
