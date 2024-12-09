@@ -1,0 +1,71 @@
+---
+title: "Reproducibility"
+---
+
+**Reproducibility** is the ability to obtain the same results as those reported by the original authors, by using their shared code and data. A **reproducible analytical pipeline (RAP)** will include all necessary steps - from data collection through to visualisation - to enable reproduction.
+
+In this project, we have provided examples of RAP for healthcare DES. Each of these examples has been designed to adhere to relevant guidance on reproducibility - in this case:
+
+1. Guidance from Heather et al. <!--TODO: proper citations-->
+2. The NHS RAP Community of Practice
+
+## Guidance from Heather et al.
+
+In Heather et al., we attempted to reproduce eight published healthcare DES articles, and produced a set of recommendations based on the facilitators and barriers encountered. These were grouped into two themes: those facilitating reproduction, and those more broadly supporting reproduction through facilitating troubleshooting and reuse.
+
+<!--TODO: check these are the final versions-->
+
+![Recommendations from Heather et al. to facilitate reproduction](../images/reproduction_wheel.png){width=80% .lightbox}
+
+![Recommendations from Heather et al. to facilitate troubleshooting and reuse](../images/troubleshooting_wheel.png){width=80% .lightbox}
+
+## NHS RAP Community of Practice
+
+The NHS RAP Community of Practice ([website](https://nhsdigital.github.io/rap-community-of-practice), [GitHub](https://github.com/NHSDigital/rap-community-of-practice)) is a website providing guidance for analysts and data scientists hoping to adopting RAP. It is developed by the NHS England Data Science Team, and shared under the Open Government Licence v3.0 and MIT Licence.
+
+They share a framework referred to as "Levels of RAP". The baseline level is a minimum standard for RAP, whilst the silver and gold levels support reuse and automation. These are copied below, as from <https://nhsdigital.github.io/rap-community-of-practice/introduction_to_RAP/levels_of_RAP/>, accessed 9 December 2024:
+
+::: {.callout-note icon=false}
+
+## Baseline
+
+RAP fundamentals offering resilience against future change.
+
+* Data produced by code in an open-source language (e.g., Python, R, SQL).
+* Code is version controlled (see Git basics and using Git collaboratively guides).
+* Repository includes a README.md file (or equivalent) that clearly details steps a user must follow to reproduce the code (use NHS Open Source Policy section on Readmes as a guide.
+* Code has been peer reviewed.
+* Code is published in the open and linked to & from accompanying publication (if relevant).
+
+:::
+
+::: {.callout-note icon=false}
+
+## Silver
+
+Implementing best practice by following good analytical and software engineering standards. Meet all baseline requirements, plus:
+
+* Outputs are produced by code with minimal manual intervention.
+* Code is well-documented including user guidance, explanation of code structure & methodology and docstrings for functions.
+* Code is well-organised following standard directory format.
+* Reusable functions and/or classes are used where appropriate.
+* Code adheres to agreed coding standards (e.g PEP8, style guide for Pyspark).
+* Pipeline includes a testing framework (unit tests, back tests).
+* Repository includes dependency information (e.g. requirements.txt, PipFile, environment.yml).
+* Logs are automatically recorded by the pipeline to ensure outputs are as expected.
+* Data is handled and output in a Tidy data format.
+
+:::
+
+::: {.callout-note icon=false}
+
+## Gold
+
+Analysis as a product to further elevate your analytical work and enhance its reusability to the public. Meet all baseline and silver requirements, plus:
+
+* Code is fully packaged.
+* Repository automatically runs tests etc. via CI/CD or a different integration/deployment tool e.g. GitHub Actions.
+* Process runs based on event-based triggers (e.g., new data in database) or on a schedule.
+* Changes to the RAP are clearly signposted. E.g. a changelog in the package, releases etc. (See gov.uk info on Semantic Versioning)
+
+:::

@@ -1,0 +1,36 @@
+---
+title: "What are we modelling?"
+---
+
+A **simulation** is a computer model that mimics a real-world system. It allows us to test different scenarios and see how the system behaves. One of the most common simulation types in healthcare is **discrete-event simulation (DES)**.
+
+In DES models, time progresses only when **specific events** happen (e.g., a patient arriving or finishing treatment). Unlike a continuous system where time flows smoothly, DES jumps forward in steps between events. For example, when people (or tasks) arrive, wait for service, get served, and then leave.
+
+![Simple DES Animation](../videos/simple_des.gif)
+*Simple model animation created using web app developed by Sammi Rosser (2024) available at https://github.com/hsma-programme/Teaching_DES_Concepts_Streamlit and shared under an MIT Licence.*
+
+One simple example of a DES model is the **M/M/s queueing model**, which is implemented in this template. In a DES model, we use well-known **statistical distributions** to describe the behaviour of real-world processes. In an M/M/s model we use:
+
+* **Poisson distribution** to model patient arrivals - and so, equivalently, use an **exponential distribution** to model the inter-arrival times (time from one arrival to the next)
+* **Exponential distribution** to model server times.
+
+These can be referred to as Markovian assumptions (hence "M/M"), and "s" refers to the number of parallel servers available.
+
+For this M/M/s model, you only need three inputs:
+
+1. **Average arrival rate**: How often people typically arrive (e.g. patient arriving to clinic).
+2. **Average service duration**: How long it takes to serve one person (e.g. doctor consultation time).
+3. **Number of servers**: How many service points are available (e.g. number of doctors).
+
+This model could be applied to a range of contexts, including:
+
+| Queue | Server/Resource |
+| - | - |
+| Patients in a waiting room | Doctor's consultation
+| Patients waiting for an ICU bed | Available ICU beds |
+| Prescriptions waiting to be processed | Pharmacists preparing and dispensing medications |
+
+For further information on M/M/s models, see:
+
+* Ganesh, A. (2012). Simple queueing models. University of Bristol. https://people.maths.bris.ac.uk/~maajg/teaching/iqn/queues.pdf.
+* Green, L. (2011). Queueing theory and modeling. In *Handbook of Healthcare Delivery Systems*. Taylor & Francis. https://business.columbia.edu/faculty/research/queueing-theory-and-modeling.

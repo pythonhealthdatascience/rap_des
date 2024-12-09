@@ -9,4 +9,9 @@ authors:
 
 ## Overview {.unnumbered}
 
-Description.
+TBC. Explain purpose of book -
+
+* Within this project, we have provided examples of **reproducible analytical piplines (RAP)** for healthcare DES, with **simple templates** and **applied examples**.
+* Links to templates and example implementations
+* Describe the reproducibility guidance and frameworks these are designed to be aligned to (so as to ensure we are generating reproducible analytical pipelines)
+* Explanation of methods and choices between methods when writing simulation models

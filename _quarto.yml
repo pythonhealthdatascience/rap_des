@@ -7,9 +7,13 @@ book:
   title: "Reproducible Discrete-Event Simulation (DES) in Python and R"
   chapters:
   - index.qmd
-  - pages/sampling.qmd
-  - pages/software.qmd
-  - pages/classes_functions.qmd
+  - pages/reproducibility.qmd
+  - pages/des.qmd
+  - part: "Methods"
+    chapters:
+    - pages/sampling.qmd
+    - pages/software.qmd
+    - pages/classes_functions.qmd
   search:
     location: navbar
     type: overlay
@@ -17,7 +21,7 @@ book:
     collapse: false
     right:
       - icon: github
-        href: https://github.com/pythonhealthdatascience/rap_template_python_des
+        href: https://github.com/pythonhealthdatascience/rap_des
 
 format:
   html:
