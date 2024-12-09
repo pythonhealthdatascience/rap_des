@@ -5,7 +5,7 @@
 ![python](https://img.shields.io/badge/-Python_3.13-blue?logo=python&logoColor=white)
 ![licence](https://img.shields.io/badge/Licence-MIT-green.svg?labelColor=gray)
 
-A simple template for creating SimPy DES models in Python, within a **reproducible analytical pipeline (RAP)**<br>
+A simple template for creating DES models in Python, within a **reproducible analytical pipeline (RAP)** 🔄 <br>
 Click on <kbd>Use this template</kbd> to initialise new repository.<br>A `README` template is provided at the **end of this file**.
 
 </div>
@@ -38,7 +38,7 @@ In DES models, time progresses only when **specific events** happen (e.g., a pat
 
 One simple example of a DES model is the **M/M/s queueing model**, which is implemented in this template. In a DES model, we use well-known **statistical distributions** to describe the behaviour of real-world processes. In an M/M/s model we use:
 
-* **Poisson distribution** to model patient arrivals.
+* **Poisson distribution** to model patient arrivals - and so, equivalently, use an **exponential distribution** to model the inter-arrival times (time from one arrival to the next)
 * **Exponential distribution** to model server times.
 
 These can be referred to as Markovian assumptions (hence "M/M"), and "s" refers to the number of parallel servers available.
@@ -57,7 +57,10 @@ This model could be applied to a range of contexts, including:
 | Patients waiting for an ICU bed | Available ICU beds |
 | Prescriptions waiting to be processed | Pharmacists preparing and dispensing medications |
 
-For further information on M/M/s models, see: Green, L. (2011). Queueing theory and modeling. In *Handbook of Healthcare Delivery Systems*. Taylor & Francis. https://business.columbia.edu/faculty/research/queueing-theory-and-modeling.
+For further information on M/M/s models, see:
+
+* Ganesh, A. (2012). Simple queueing models. University of Bristol. https://people.maths.bris.ac.uk/~maajg/teaching/iqn/queues.pdf.
+* Green, L. (2011). Queueing theory and modeling. In *Handbook of Healthcare Delivery Systems*. Taylor & Francis. https://business.columbia.edu/faculty/research/queueing-theory-and-modeling.
 
 <br>
 
