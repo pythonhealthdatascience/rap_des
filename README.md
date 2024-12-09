@@ -1,12 +1,10 @@
 <div align="center">
 
-# Simple Reproducible Python<br>Discrete-Event Simulation (DES) Template
+# Reproducible Discrete-Event Simulation (DES)
 
-![python](https://img.shields.io/badge/-Python_3.13-blue?logo=python&logoColor=white)
 ![licence](https://img.shields.io/badge/Licence-MIT-green.svg?labelColor=gray)
 
-A simple template for creating DES models in Python, within a **reproducible analytical pipeline (RAP)** 🔄 <br>
-Click on <kbd>Use this template</kbd> to initialise new repository.<br>A `README` template is provided at the **end of this file**.
+Simple templates and example of implementations of DES models in **Python and R**, within a **reproducible analytical pipeline (RAP)**
 
 </div>
 
@@ -20,8 +18,7 @@ Click on <kbd>Use this template</kbd> to initialise new repository.<br>A `README
 
 TBC. Notes:
 
-* Purpose of template.
-* Explanation of implementation (e.g. SimPy, cite).
+* Link to template repositoryes
 * Link to STARS.
 * Link to relevant publication.
 
@@ -64,12 +61,17 @@ For further information on M/M/s models, see:
 
 <br>
 
-## 🚀  Quickstart
+## 📖 Viewing this book
+
+TBC. Notes on:
+
+* View it online
+* View it locally
 
 ```
 # Clone project
-git clone https://github.com/pythonhealthdatascience/rap_template_python_des
-cd rap_template_python_des
+git clone https://github.com/pythonhealthdatascience/rap_des
+cd rap_des
 
 # Create conda environment
 conda env create --file environment.yaml
@@ -118,43 +120,3 @@ SOFTWARE.
 ## 💰 Funding
 
 This project was developed as part of the project STARS: Sharing Tools and Artefacts for Reproducible Simulations. It is supported by the Medical Research Council [grant number [MR/Z503915/1](https://gtr.ukri.org/projects?ref=MR%2FZ503915%2F1)].
-
-<br>
-<br>
-<br>
-
-**DELETE EVERYTHING ABOVE FOR YOUR PROJECT**
-
-___
-
-<div align="center">
-
-# Your Project Name
-
-[![Template](https://img.shields.io/badge/-rap__template__python__des-017F2F?style=flat&logo=github&labelColor=gray)](https://github.com/pythonhealthdatascience/rap_template_python_des)
-![python](https://img.shields.io/badge/-Python_Version-blue?logo=python&logoColor=white)
-![licence](https://img.shields.io/badge/Licence-Name-green.svg?labelColor=gray)
-
-</div>
-
-## Description
-
-TBC. Provide instructions and basic example.
-
-<br>
-
-## Installation
-
-TBC. Provide instructions and basic example.
-
-<br>
-
-## How to run
-
-TBC. Provide instructions and basic example.
-
-<br>
-
-## Citation
-
-TBC. Provide instructions and basic example for how to cite their project. Provide correct citation for this template.
