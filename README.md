@@ -30,7 +30,7 @@ A **simulation** is a computer model that mimics a real-world system. It allows 
 
 In DES models, time progresses only when **specific events** happen (e.g., a patient arriving or finishing treatment). Unlike a continuous system where time flows smoothly, DES jumps forward in steps between events. For example, when people (or tasks) arrive, wait for service, get served, and then leave.
 
-![Simple DES Animation](docs/visuals/simple_des.gif)
+![Simple DES Animation](videos/simple_des.gif)
 *Simple model animation created using web app developed by Sammi Rosser (2024) available at https://github.com/hsma-programme/Teaching_DES_Concepts_Streamlit and shared under an MIT Licence.*
 
 One simple example of a DES model is the **M/M/s queueing model**, which is implemented in this template. In a DES model, we use well-known **statistical distributions** to describe the behaviour of real-world processes. In an M/M/s model we use:
