@@ -1,0 +1,25 @@
+project:
+  type: book
+  preview:
+    browser: true
+
+book:
+  title: "Documentation for template Python DES"
+  chapters:
+  - index.qmd
+  - pages/sampling.qmd
+  - pages/software.qmd
+  - pages/classes_functions.qmd
+  search:
+    location: navbar
+    type: overlay
+  navbar:
+    collapse: false
+    right:
+      - icon: github
+        href: https://github.com/pythonhealthdatascience/rap_template_python_des
+
+format:
+  html:
+    theme: cosmo
+    toc: true

@@ -1,0 +1,59 @@
+---
+title: "Python simulation software"
+---
+
+```{python}
+#| echo: false
+
+from datetime import datetime
+from IPython.display import display, Markdown
+import requests
+
+def get_package_info(package_name):
+    '''
+    Fetch the last update date, latest version, and Python compatibility
+    for a specified Python package.
+    
+    Parameters:
+    -----------
+    package_name : string
+        Name of Python package.
+
+    Returns:
+    --------
+    tuple
+        A tuple containing:
+        - version (str): The latest version of the package.
+        - release_date (str): The last update date formatted as 'DD Month YYYY'.
+        If an error occurs, returns 'Error fetching data'.
+    '''
+    # Connect to package page on PyPi
+    url = f'https://pypi.org/pypi/{package_name}/json'
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        # Fetch data from page
+        data = response.json()
+
+        # Extract version and upload time
+        version = data["info"]["version"]
+        time = data['urls'][0]['upload_time']
+        release_date = datetime.fromisoformat(time).strftime('%d %B %Y')
+
+        return version, release_date
+    else:
+        return 'Error fetching data'
+
+
+# Get packages
+packages = ['simpy', 'salabim', 'ciw']
+updates = {pkg: get_package_info(pkg) for pkg in packages}
+
+# Display results
+display(Markdown(f'As of {datetime.today().strftime('%d %B %Y')}:'))
+for pkg, info in updates.items():
+    display(Markdown(
+        f'* **{pkg}** is at version {info[0]}, '
+        f'last updated on **{info[1]}**.'
+    ))
+```

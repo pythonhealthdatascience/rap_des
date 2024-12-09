@@ -1,0 +1,10 @@
+---
+title: "Classes v.s. Functions"
+---
+
+Classes v.s. Functions
+
+* Classes have internal state (with attributes)
+* Classes have their own functions
+
+Hence handy here where we have patient attributes and abilities, keeps things organised rather than lots of seperate variables and functions
