@@ -5,7 +5,7 @@
 ![python](https://img.shields.io/badge/-Python_3.13-blue?logo=python&logoColor=white)
 ![licence](https://img.shields.io/badge/Licence-MIT-green.svg?labelColor=gray)
 
-A simple template for creating SimPy DES models in Python, within a **reproducible analytical pipeline (RAP)**. 🔄 <br>
+A simple template for creating SimPy DES models in Python, within a **reproducible analytical pipeline (RAP)** 🔄 <br>
 Click on <kbd>Use this template</kbd> to initialise new repository.<br>A `README` template is provided at the **end of this file**.
 
 </div>
@@ -31,27 +31,25 @@ TBC. Notes:
 
 A **simulation** is a computer model that mimics a real-world system. It allows us to test different scenarios and see how the system behaves. One of the most common simulation types in healthcare is **discrete-event simulation (DES)**.
 
-In DES models, time progresses only when **specific events** happen (e.g., a patient arriving or finishing treatment). Unlike a continuous system where time flows smoothly, DES jumps forward in steps between events.
-
-One simple example of a DES model is the **M/M/s queueing model**, which is implemented in this template. It is commonly used to represent systems where people (or tasks) arrive, wait for service, get served, and then leave.
+In DES models, time progresses only when **specific events** happen (e.g., a patient arriving or finishing treatment). Unlike a continuous system where time flows smoothly, DES jumps forward in steps between events. For example, when people (or tasks) arrive, wait for service, get served, and then leave.
 
 ![Simple DES Animation](simple_des.gif)
 *Simple model animation created using web app developed by Sammi Rosser (2024) available at https://github.com/hsma-programme/Teaching_DES_Concepts_Streamlit and shared under an MIT Licence.*
 
-For this model, you only need three inputs:
-
-1. **Average arrival rate**: How often people typically arrive (e.g. patient arriving to clinic).
-2. **Average service duration**: How long it takes to serve one person (e.g. doctor consultation time).
-3. **Number of servers**: How many service points are available (e.g. number of doctors).
-
-In a DES model, we use well-known **statistical distributions** to describe the behaviour of real-world processes. In an M/M/s model we use:
+One simple example of a DES model is the **M/M/s queueing model**, which is implemented in this template. In a DES model, we use well-known **statistical distributions** to describe the behaviour of real-world processes. In an M/M/s model we use:
 
 * **Poisson distribution** to model patient arrivals.
 * **Exponential distribution** to model server times.
 
 These can be referred to as Markovian assumptions (hence "M/M"), and "s" refers to the number of parallel servers available.
 
-**Examples:**
+For this M/M/s model, you only need three inputs:
+
+1. **Average arrival rate**: How often people typically arrive (e.g. patient arriving to clinic).
+2. **Average service duration**: How long it takes to serve one person (e.g. doctor consultation time).
+3. **Number of servers**: How many service points are available (e.g. number of doctors).
+
+This model could be applied to a range of contexts, including:
 
 | Queue | Server/Resource |
 | - | - |
