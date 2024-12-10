@@ -2,10 +2,14 @@
 title: "Structuring a SimPy model"
 ---
 
-There are many different ways to structure a SimPy model. This page runs through some options - but first runs through the basics of how SimPy works.
+There are many different ways to structure a SimPy model. This page runs through some options for a very basic M/M/c model (single run, just records mean wait and service times). First though, some basic info on how python and simpy components work.
 
 ```{python}
+from dataclasses import dataclass
+import itertools
 import numpy as np
+import pandas as pd
+import random
 import simpy
 ```
 
@@ -100,48 +104,22 @@ print(calc.result)  # Output: 7
 Active components (e.g. patients) are modelled using **processes**. They create **events** and `yield` them to wait for them to occur, and so are defined by python generator functions. Events include:
 
 * **Timeouts** - simulate time passing, e.g. `yield env.timeout(inter_arrival_time)`
-* **Requests and releases** - interacting with resource, e.g. `server_pool.request()`
+* **Requests and releases** - interacting with resource, e.g. `servers.request()`
 
 This all happens within an **environment** (`simpy.Environment()`) which manages time and processes, is required to create new events.
 
 For more information, see the SimPy documentation: <https://simpy.readthedocs.io>
 
-## Functions v.s. classes
+## Functional SimPy model
 
-Whilst it is possible to write a SimPy model using functions, classes are recommended as they:
-
-* Have internal state (with attributes)
-* Have their own functions
-
-This is handy when we have, for example, patient attributes and abilities to group together.
-
-However, some examples of a SimPy M/M/c model without classes are provided:
+It is possible to write a basic SimPy model using functions.
 
 ::: {.callout-note icon=false collapse="true"}
 
-## Example 1: Single function
+## Example: Function-based SimPy model
 
 ```{python}
-# Parameters
-iat = 15  # Inter-arrival time (mean time between arrivals)
-dur = 10  # Average service duration (mean service time)
-servers = 3  # Number of servers
-run_length = 200  # Total simulation time
-
-# Produce seeds which we use to initialise seperate RNGs for sampling from each
-# distribution with independent random number streams
-entropy = 12345
-ss = np.random.SeedSequence(entropy)
-seeds = ss.spawn(2)
-arrivals_rng = np.random.default_rng(seeds[0])
-duration_rng = np.random.default_rng(seeds[1])
-
-# Lists to store wait times and service times
-wait_times = []
-service_times = []
-
-
-def model(env, arrival_rate, dur, servers):
+def model(env, arrival_rate, service_duration, servers):
     '''
     Simulates a system where patients arrive randomly and require service from
     a limited number of servers. Tracks wait times and service durations during
@@ -153,55 +131,33 @@ def model(env, arrival_rate, dur, servers):
         The SimPy environment instance.
     arrival_rate : numeric
         Mean inter-arrival time for patients.
-    dur: numeric
+    service_duration: numeric
         Mean service time.
-    servers : int
-        The number of servers available to handle the patients.
+    servers : simpy.Resource
+        The SimPy resource pool representing the servers.
     '''
     while True:
-        # Create server SimPy resource
-        server_pool = simpy.Resource(env, capacity=servers)
-
         # Get time until next arrival by sampling from exponential distribution
         inter_arrival_time = arrivals_rng.exponential(arrival_rate)
         yield env.timeout(inter_arrival_time)
 
         # Request a server and record wait time
-        with server_pool.request() as request:
+        with servers.request() as request:
             wait_start_time = env.now
             yield request
             wait_time = env.now - wait_start_time
             wait_times.append(wait_time)
 
             # Get service time by sampling from exponential distribution
-            service_time = duration_rng.exponential(dur)
+            service_time = duration_rng.exponential(service_duration)
             service_times.append(service_time)
             yield env.timeout(service_time)
 
-# Set up the simulation environment
-env = simpy.Environment()
-# Start the arrival process and run for specified period of time
-env.process(model(env, iat, dur))
-env.run(until=run_length)
 
-# After the simulation ends, calculate average wait time and service time
-average_wait_time = np.mean(wait_times)
-average_service_time = np.mean(service_times)
-print(f'\nAverage wait time: {average_wait_time:.2f}')
-print(f'Average service time: {average_service_time:.2f}')
-```
-
-:::
-
-::: {.callout-note icon=false collapse="true"}
-
-## Example 2: Multiple functions
-
-```{python}
 # Parameters
-iat = 15  # Inter-arrival time (mean time between arrivals)
-dur = 10  # Average service duration (mean service time)
-servers = 3  # Number of servers
+inter_arrival = 15  # Inter-arrival time (mean time between arrivals)
+service_duration = 10  # Average service duration (mean service time)
+n_servers = 3  # Number of servers
 run_length = 200  # Total simulation time
 
 # Produce seeds which we use to initialise seperate RNGs for sampling from each
@@ -216,67 +172,14 @@ duration_rng = np.random.default_rng(seeds[1])
 wait_times = []
 service_times = []
 
-
-def patient(env, server_pool):
-    '''
-    Simulate the behavior of a single patient in the system.
-
-    Parameters
-    ----------
-    env : simpy.Environment
-        The SimPy environment instance.
-    server_pool : simpy.Resource
-        The SimPy resource pool representing the servers.
-    '''
-
-    # Request a server and record wait time
-    with server_pool.request() as request:
-        wait_start_time = env.now
-        yield request
-        wait_time = env.now - wait_start_time
-        wait_times.append(wait_time)
-
-        # Get service time by sampling from exponential distribution
-        service_time = duration_rng.exponential(dur)
-        service_times.append(service_time)
-        yield env.timeout(service_time)
-
-
-def setup(env, arrival_rate, server_pool):
-    '''
-    Simulate the arrival of patients to the system.
-
-    Patients arrive at intervals determined by an exponential distribution,
-    and each patient triggers the patient process.
-
-    Parameters
-    ----------
-    env : simpy.Environment
-        The SimPy environment instance.
-    arrival_rate : float
-        The mean inter-arrival time for patients.
-    server_pool : simpy.Resource
-        The SimPy resource pool representing the servers.
-    '''
-
-    while True:
-
-        # Get time until next arrival by sampling from exponential distribution
-        inter_arrival_time = arrivals_rng.exponential(iat)
-        yield env.timeout(inter_arrival_time)
-
-        # Create new patient and start the patient process
-        env.process(patient(env, server_pool))
-
-
-# Set up simulation environment
+# Set up the simulation environment
 env = simpy.Environment()
 
 # Create server SimPy resource
-server_pool = simpy.Resource(env, capacity=servers)
+servers = simpy.Resource(env, capacity=n_servers)
 
 # Start the arrival process and run for specified period of time
-env.process(setup(env, iat, server_pool))
+env.process(model(env, inter_arrival, service_duration, servers))
 env.run(until=run_length)
 
 # After the simulation ends, calculate average wait time and service time
@@ -288,46 +191,63 @@ print(f'Average service time: {average_service_time:.2f}')
 
 :::
 
-## Classes
+However, **classes** are typically recommended, particularly as models become more complex. This is because they:
+
+* Have internal state (with attributes)
+* Have their own functions
+
+This is handy when we have, for example, patient attributes and abilities to group together and keep track of.
+
+## Object-oriented SimPy model
+
+As mentioned, this is the recommended approach. There are many different ways these could be configured, and a few examples are provided.
+
+Within these examples:
+
+* The metrics (e.g. wait times) are output in a dataframe **alongside patient ID**, facilitating more complex analyses as more metrics are tracked or with different patient attributes (but in a very simple model - e.g. just wanting wait times - you could just append results to a list, and remove IDs)
+
+::: {.callout-note icon=false collapse="true"}
+
+## Example: Single class
 
 ```{python}
-import numpy as np
-import simpy
-
 class HospitalSimulation:
-    def __init__(self, iat, dur, servers, run_length, entropy=12345):
+    def __init__(self, inter_arrival, service_duration, n_servers, run_length,
+                 entropy=12345):
         '''
         Initialize the simulation parameters.
 
         Parameters
         ----------
-        iat : float
+        inter_arrival : float
             Inter-arrival time (mean time between arrivals).
-        dur : float
+        service_duration : float
             Average service duration (mean service time).
-        servers : int
+        n_servers : int
             Number of servers.
         run_length : float
             Total simulation time.
         entropy : int, optional
             Seed for random number generation, by default 12345.
         '''
-        self.iat = iat
-        self.dur = dur
-        self.servers = servers
+        self.inter_arrival = inter_arrival
+        self.service_duration = service_duration
+        self.n_servers = n_servers
         self.run_length = run_length
 
-        # Produce seeds for independent RNGs for arrival and service time distributions
+        # Produce seeds for independent RNGs for arrival and service time dist
         ss = np.random.SeedSequence(entropy)
         seeds = ss.spawn(2)
         self.arrivals_rng = np.random.default_rng(seeds[0])
         self.duration_rng = np.random.default_rng(seeds[1])
 
-        # Lists to store wait times and service times
-        self.wait_times = []
-        self.service_times = []
+        # List to store patient data
+        self.data = []
 
-    def patient(self, env, server_pool):
+        # Counter for patient ID
+        self.patient_id_counter = 0
+
+    def patient(self, env, servers):
         '''
         Simulate the behavior of a single patient in the system.
 
@@ -335,22 +255,31 @@ class HospitalSimulation:
         ----------
         env : simpy.Environment
             The SimPy environment instance.
-        server_pool : simpy.Resource
+        servers : simpy.Resource
             The SimPy resource pool representing the servers.
         '''
+        # Assign a unique ID to the patient
+        patient_id = self.patient_id_counter
+        self.patient_id_counter += 1
+
         # Request a server and record wait time
-        with server_pool.request() as request:
+        with servers.request() as request:
             wait_start_time = env.now
             yield request
             wait_time = env.now - wait_start_time
-            self.wait_times.append(wait_time)
 
             # Get service time by sampling from exponential distribution
-            service_time = self.duration_rng.exponential(self.dur)
-            self.service_times.append(service_time)
+            service_time = self.duration_rng.exponential(self.service_duration)
             yield env.timeout(service_time)
 
-    def setup(self, env, server_pool):
+            # Append patient data to the list
+            self.data.append({
+                'id': patient_id,
+                'wait_time': wait_time,
+                'service_time': service_time
+            })
+
+    def setup(self, env, servers):
         '''
         Simulate the arrival of patients to the system.
 
@@ -358,16 +287,17 @@ class HospitalSimulation:
         ----------
         env : simpy.Environment
             The SimPy environment instance.
-        server_pool : simpy.Resource
+        servers : simpy.Resource
             The SimPy resource pool representing the servers.
         '''
         while True:
-            # Get time until next arrival by sampling from exponential distribution
-            inter_arrival_time = self.arrivals_rng.exponential(self.iat)
+            # Get time until next arrival by sampling from exponential dist
+            inter_arrival_time = self.arrivals_rng.exponential(
+                self.inter_arrival)
             yield env.timeout(inter_arrival_time)
 
             # Create a new patient and start the patient process
-            env.process(self.patient(env, server_pool))
+            env.process(self.patient(env, servers))
 
     def run(self):
         '''
@@ -377,26 +307,383 @@ class HospitalSimulation:
         env = simpy.Environment()
 
         # Create server SimPy resource
-        server_pool = simpy.Resource(env, capacity=self.servers)
+        servers = simpy.Resource(env, capacity=self.n_servers)
 
         # Start the arrival process and run for the specified period of time
-        env.process(self.setup(env, server_pool))
+        env.process(self.setup(env, servers))
         env.run(until=self.run_length)
 
-        # After the simulation ends, calculate average wait time and service time
-        average_wait_time = np.mean(self.wait_times) if self.wait_times else 0
-        average_service_time = np.mean(self.service_times) if self.service_times else 0
+        # Convert the data list to a DataFrame
+        self.results = pd.DataFrame(self.data)
+
+        # After the simulation ends, calculate average wait and service time
+        average_wait_time = self.results['wait_time'].mean()
+        average_service_time = self.results['service_time'].mean()
+        print(self.results)
         print(f'\nAverage wait time: {average_wait_time:.2f}')
         print(f'Average service time: {average_service_time:.2f}')
 
 
 # Parameters
-iat = 15  # Inter-arrival time (mean time between arrivals)
-dur = 10  # Average service duration (mean service time)
-servers = 3  # Number of servers
+inter_arrival = 15  # Inter-arrival time (mean time between arrivals)
+service_duration = 10  # Average service duration (mean service time)
+n_servers = 3  # Number of servers
 run_length = 200  # Total simulation time
 
 # Create the simulation instance and run it
-simulation = HospitalSimulation(iat, dur, servers, run_length)
+simulation = HospitalSimulation(inter_arrival, service_duration, n_servers,
+                                run_length)
 simulation.run()
 ```
+
+:::
+
+::: {.callout-note icon=false collapse="true"}
+
+## Example: HSMA
+
+This is adapted from <https://hsma-programme.github.io/hsma6_des_book/an_example_simpy_model.html>. That code was shared under an MIT Licence, with credit to: Sammi Rosser and Dan Chalk (2024) HSMA - the little book of DES (<https://github.com/hsma-programme/hsma6_des_book>).
+
+```{python}
+class Parameters:
+    '''
+    Holds simulation parameters for the hospital model.
+    
+    Attributes
+    ----------
+    inter_arrival : float
+        Mean time between patient arrivals (inter-arrival time).
+    service_duration : float
+        Mean service time per patient.
+    n_servers : int
+        Number of servers available in the hospital.
+    run_length : int
+        Total simulation time in the model (in time units).
+    '''
+    inter_arrival = 15  # Inter-arrival time (mean time between arrivals)
+    service_duration = 10  # Average service duration (mean service time)
+    n_servers = 3  # Number of servers
+    run_length = 200  # Total simulation time
+
+class Patient:
+    '''
+    Represents a patient in the hospital system.
+    '''
+    def __init__(self, p_id):
+        '''
+        Parameters
+        ----------
+        p_id : int
+            The unique ID assigned to the patient.
+        '''
+        self.id = p_id
+
+class Model:
+    '''
+    Simulates the hospital patient arrival and service system.
+    '''
+    def __init__(self, entropy=12345):
+        '''
+        Initializes the simulation model with the given parameters.
+
+        Parameters
+        ----------
+        entropy : int, optional
+            Seed for random number generation, by default 12345.
+        '''
+        # Set up simulation environment
+        self.env = simpy.Environment()
+
+        # Counter for patient ID
+        self.patient_counter = 0
+
+        # Create server SimPy resource
+        self.servers = simpy.Resource(self.env, capacity=Parameters.n_servers)
+
+        # Produce seeds for independent RNGs for arrival and service time dist
+        ss = np.random.SeedSequence(entropy)
+        seeds = ss.spawn(2)
+        self.arrivals_rng = np.random.default_rng(seeds[0])
+        self.duration_rng = np.random.default_rng(seeds[1])
+
+        # List to store patient results
+        self.results_list = []
+
+    def generator_patient_arrivals(self):
+        '''
+        Generates patient arrivals and schedules their clinic visits.
+
+        Yields
+        ------
+        simpy.events.Timeout
+            Delays the simulation until the next patient arrival.
+        '''
+        while True:
+            self.patient_counter += 1
+            p = Patient(self.patient_counter)
+            self.env.process(self.attend_clinic(p))
+            inter_arrival_time = self.arrivals_rng.exponential(
+                Parameters.inter_arrival)
+            yield self.env.timeout(inter_arrival_time)
+
+    def attend_clinic(self, patient):
+        '''
+        Simulates the patient attending the clinic.
+
+        Parameters
+        ----------
+        patient : Patient
+            The patient object being processed in the clinic.
+        
+        Yields
+        ------
+        simpy.events.Timeout
+            Delays the simulation until the patient has been serviced.
+        '''
+        # Request a server and record the wait time
+        wait_start_time = self.env.now
+        with self.servers.request() as req:
+            yield req
+            patient.wait_time = self.env.now - wait_start_time
+
+            # Get service time by sampling from exponential distribution
+            service_time = self.duration_rng.exponential(
+                Parameters.service_duration)
+
+            # Append patient results to list
+            self.results_list.append({
+                'id': patient.id,
+                'wait_time': patient.wait_time,
+                'service_time': service_time
+            })
+            yield self.env.timeout(service_time)
+
+    def calculate_run_results(self):
+        '''
+        Calculates average wait and service times based on the simulation
+        results.
+        '''
+        self.average_wait_time = self.results_df['wait_time'].mean()
+        self.average_service_time = self.results_df['service_time'].mean()
+
+    def run(self):
+        '''
+        Runs the hospital simulation for a specified duration.
+        '''
+        # Start the arrival process and run for the specified period of time
+        self.env.process(self.generator_patient_arrivals())
+        self.env.run(until=Parameters.run_length)
+
+        # Convert the data list to a DataFrame
+        self.results_df = pd.DataFrame(self.results_list)
+
+        # After the simulation ends, calculate average wait time
+        self.calculate_run_results()
+
+        # Display the results
+        print(self.results_df)
+        print(f'Average wait time: {self.average_wait_time:.2f}')
+        print(f'Average service time: {self.average_service_time:.2f}')
+
+model = Model()
+model.run()
+```
+
+:::
+
+::: {.callout-note icon=false collapse="true"}
+
+## Example: MSc
+
+The below is adapted from <https://github.com/health-data-science-OR/stochastic_systems/blob/master/labs/simulation/lab1/simulation_lab1_SOLUTIONS.ipynb>. That code is shared under an MIT licence with credit to Tom Monks (2024) HPDM097 - Making a difference with health data: stochastic healthcare systems (<https://github.com/health-data-science-OR/stochastic_systems>).
+
+```{python}
+class Exponential():
+    '''
+    A class to generate samples from an exponential distribution.
+    '''
+    def __init__(self, mean, random_seed=None):
+        '''
+        Initializes the Exponential distribution generator.
+
+        Parameters
+        ----------
+        mean : float
+            The mean (rate parameter) of the exponential distribution.
+        random_seed : int, optional
+            Seed for random number generation, by default None (uses system
+            default seed).
+        '''
+        self.rand = np.random.default_rng(random_seed)
+        self.mean = mean
+
+    def sample(self, size=None):
+        '''
+        Generates random samples from the exponential distribution.
+
+        Parameters
+        ----------
+        size : int or tuple of ints, optional
+            The number of samples to generate, by default None (returns a
+            single value).
+        '''
+        return self.rand.exponential(self.mean, size=size)
+
+
+class Auditor:
+    def __init__(self, env, run_length, first_obs=None, interval=None):
+        self.env = env
+        self.first_observation = first_obs
+        self.interval = interval
+        self.run_length = run_length
+        self.queues = []
+        self.service = []
+        self.metrics = {}
+        if not first_obs is None:
+            env.process(self.scheduled_observation())
+            env.process(self.process_end_of_run())
+            
+    def add_resource_to_audit(self, resource, name, audit_type='qs'):
+        if 'q' in audit_type:
+            self.queues.append((name, resource))
+            self.metrics[f'queue_length_{name}'] = []
+        
+        if 's' in audit_type:
+            self.service.append((name, resource))
+            self.metrics[f'system_{name}'] = []           
+            
+    def scheduled_observation(self):
+        yield self.env.timeout(self.first_observation)
+        self.record_queue_length()
+        self.record_calls_in_progress()
+        while True:
+            yield self.env.timeout(self.interval)
+            self.record_queue_length()
+            self.record_calls_in_progress()
+    
+    def record_queue_length(self):
+        for name, res in self.queues:
+            self.metrics[f'queue_length_{name}'].append(len(res.queue)) 
+        
+        
+    def record_calls_in_progress(self):
+        for name, res in self.service:
+            self.metrics[f'system_{name}'].append(res.count + len(res.queue)) 
+               
+        
+    def process_end_of_run(self):
+        yield self.env.timeout(self.run_length - 1)
+        run_results = {}
+        for name, res in self.queues:
+            queue_length = np.array(self.metrics[f'queue_length_{name}'])
+            run_results[f'mean_queue_{name}'] = queue_length.mean()
+        for name, res in self.service:
+            total_in_system = np.array(self.metrics[f'system_{name}'])
+            run_results[f'mean_system_{name}'] = total_in_system.mean()
+        self.summary_frame = pd.Series(run_results).to_frame()
+        self.summary_frame.columns = ['estimate'] 
+
+
+class Scenario:
+    def __init__(self):
+        self.servers = simpy.Resource(env, capacity=N_SERVERS)
+        self.arrival_dist = Exponential(MEAN_IAT, random_seed=ARRIVAL_SEED)
+        self.service_dist = Exponential(MEAN_DURATION, random_seed=DURATION_SEED)
+
+
+def trace(msg):
+    if TRACE:
+        print(msg)
+
+
+class Patient:
+    def __init__(self, identifier, env, args):
+        self.identifier = identifier
+        self.env = env
+        self.servers = args.servers
+        self.service_dist = args.service_dist
+   
+         
+    def service(self):
+        start_wait = env.now
+        with self.servers.request() as req:
+            yield req
+            self.waiting_time = self.env.now - start_wait
+            trace(f'server for {self.identifier} at {self.env.now:.3f}')
+            self.call_duration = self.service_dist.sample()
+            yield self.env.timeout(self.call_duration)
+            trace(f'service for {self.identifier} ended {self.env.now:.3f}; ' \
+                  + f'waiting time was {self.waiting_time:.3f}')
+
+
+class Model:
+    def __init__(self, env, args):
+        self.env = env
+        self.args = args 
+        self.patients = []
+        
+    def arrivals_generator(self):
+        for caller_count in itertools.count(start=1):
+            inter_arrival_time = self.args.arrival_dist.sample()
+            yield self.env.timeout(inter_arrival_time)
+            trace(f'patient {caller_count} arrives at: {self.env.now:.3f}')
+            new_caller = Patient(caller_count, self.env, self.args)
+            self.patients.append(new_caller)
+            self.env.process(new_caller.service())
+
+
+def run_results(model, auditor):
+    df_results = auditor.summary_frame
+    mean_waiting_time = np.array([patient.waiting_time 
+                                  for patient in model.patients]).mean()
+    util = np.array([patient.call_duration 
+                     for patient in model.patients]).sum() / \
+                    (RUN_LENGTH * N_SERVERS)
+    new_row = pd.DataFrame({'estimate':{'mean_wait': mean_waiting_time, 
+                                        'util':util}})
+    df_results = pd.concat([df_results, new_row])
+    return df_results
+
+
+# Create seeds
+ENTROPY = 12345
+ss = np.random.SeedSequence(entropy)
+seeds = ss.spawn(2)
+ARRIVAL_SEED = seeds[0]
+DURATION_SEED = seeds[1]
+
+# Model parameters
+MEAN_IAT = 15  # Inter-arrival time (mean time between arrivals)
+MEAN_DURATION = 10  # Average service duration (mean service time)
+N_SERVERS = 3  # Number of servers
+RUN_LENGTH = 200  # Total simulation time
+
+# Whether to print output from auditor
+TRACE = True
+
+# Auditing frequency
+FIRST_OBS = 10
+OBS_INTERVAL = 5
+
+# Set up simulation environment and scenario
+env = simpy.Environment()
+args = Scenario()
+
+# Set up auditor
+auditor = Auditor(env, RUN_LENGTH, FIRST_OBS, OBS_INTERVAL)
+auditor.add_resource_to_audit(args.servers, 'server')
+
+# Set up model
+model = Model(env, args)
+
+# Start the arrival process and run for the specified period of time
+env.process(model.arrivals_generator())
+env.run(until=RUN_LENGTH)
+
+# Display run results
+print(f'end of run. simulation clock time = {env.now}')
+print('\nSingle run results\n-------------------')
+run_results(model, auditor)
+```
+
+:::
